@@ -1,3 +1,4 @@
+import BarcodeScanner from '../../app/barcode-scanner';
 import './dom-setup';
 import {indexedDB,IDBKeyRange} from 'fake-indexeddb';
 Object.assign(globalThis,{indexedDB,IDBKeyRange});
@@ -47,4 +48,16 @@ test('supermarket picked toggle is reversible and quick product form adds a name
  render(<HomeApp request={request}/>);await screen.findByRole('heading',{name:'Rodme Home 🏠'});fireEvent.click(screen.getByRole('button',{name:'🛒 Supermercado',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Mis productos',exact:true}));
  fireEvent.click(screen.getByRole('button',{name:'Ya lo eché al carrito: Jabón Dove Rosado'}));await waitFor(()=>assert.equal(home.cart.length,1));fireEvent.click(screen.getByRole('button',{name:'Ya lo eché al carrito: Jabón Dove Rosado'}));await waitFor(()=>assert.equal(home.cart.length,0));
  fireEvent.click(screen.getByText('＋ Agregar un producto rápidamente'));fireEvent.change(screen.getByLabelText('Nombre'),{target:{value:'Leche nueva'}});fireEvent.change(screen.getByLabelText('Precio por unidad (opcional)'),{target:{value:'1500'}});fireEvent.click(screen.getByRole('button',{name:'Agregar al carrito',exact:true}));await waitFor(()=>assert.equal(home.cart.length,1));assert.equal(home.products.at(-1)?.name,'Leche nueva');assert.equal(home.cart[0].price,1500);
+});
+
+test('finish action can be undone through the saved app and missing products remain pending',async()=>{
+ let home=sample(),revision=1;home.products[0].pantryLots=[{id:'lot',quantity:3,expiry:''}];const request=(async(_url:any,init:any={})=>{if(init.method==='POST'){home=JSON.parse(init.body).home;revision++;}return Response.json({home,revision});}) as typeof fetch;
+ render(<HomeApp request={request}/>);await screen.findByRole('heading',{name:'Rodme Home 🏠'});fireEvent.click(screen.getByRole('button',{name:'🏠 Mi casa',exact:true}));fireEvent.click(screen.getAllByRole('button',{name:'Se terminó',exact:true})[0]);await waitFor(()=>assert.equal(home.products[0].pantryLots.length,0));fireEvent.click(screen.getByRole('button',{name:'↶ Deshacer último cambio'}));await waitFor(()=>assert.equal(home.products[0].pantryLots[0].quantity,3));
+ fireEvent.click(screen.getByRole('button',{name:'🛒 Supermercado',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Mis productos',exact:true}));fireEvent.click(screen.getByRole('button',{name:'No encontré: Jabón Dove Rosado'}));await waitFor(()=>assert.deepEqual(home.products[0].notFoundStores,['shop']));assert.equal(home.products[0].purchased,false);
+});
+test('scanner manually finds a stored product and stops camera on a decoded barcode',async()=>{
+ const home=sample();home.products[0].barcode='7501000123456';let picked='';let stops=0;
+ const readerFactory=async()=>({decodeFromConstraints:async(_constraints:any,_video:any,callback:any)=>{const controls={stop:()=>stops++};callback({getText:()=> '7501000123456'},undefined,controls);return controls;}});
+ render(<BarcodeScanner home={home} busy={false} onProduct={p=>picked=p.id} onAssign={async()=>true} readerFactory={readerFactory}/>);fireEvent.click(screen.getByRole('button',{name:'📷 Buscar por código de barras'}));fireEvent.change(screen.getByLabelText('Código de barras'),{target:{value:'7501000123456'}});fireEvent.click(screen.getByRole('button',{name:'Buscar código',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Agregar este producto'}));assert.equal(picked,'soap');
+ fireEvent.click(screen.getByRole('button',{name:'Abrir cámara'}));await waitFor(()=>assert.ok(stops>=1));await waitFor(()=>assert.equal(document.querySelector('video'),null));
 });

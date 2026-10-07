@@ -32,3 +32,13 @@ Mi casa organiza existencias por Alacena, Refrigeradora, Congelador, Limpieza y 
 Después de guardar una compra con productos, se abre la confirmación para guardarla en casa. Cantidades, ubicación y vencimiento son editables; cero omite un producto. Cada compra se registra en la alacena una sola vez. Las compras guardadas únicamente con la calculadora no crean existencias: se pueden registrar manualmente en Mi casa.
 
 El supermercado incluye Lo eché/Deshacer, ocultar productos ya recogidos, alta rápida con nombre/cantidad/precio y comparación de presentaciones por kg/l/unidad. Los precios faltantes deben completarse antes de finalizar. No se cambió el inicio visual, las fotos originales ni la calculadora. Las fotos se descargan y quedan disponibles sin conexión después de visualizarlas; no se descargan todas al iniciar.
+
+### Reposición y herramientas de supermercado
+
+Editar un producto en Mi casa permite indicar la cantidad que se quiere tener. La lista muestra existencias y cantidad faltante; el carrito propone esa cantidad al agregar. Se terminó deja el stock en cero y el producto pendiente. No encontré conserva el producto pendiente por tienda; una lista parcialmente comprada permanece abierta.
+
+Las listas pueden marcarse como habituales semanales o mensuales. Revisar faltantes compara sus productos con las existencias; no crea recordatorios ni agrega productos que ya alcanzaron su cantidad deseada. Un producto sin existencias registradas queda pendiente para revisar. Estas listas se reutilizan después de cada compra.
+
+Deshacer último cambio guarda una sola operación durante la sesión. Revierte los campos modificados y conserva cambios independientes compartidos. Si el mismo dato cambió después, solicita revisarlo en lugar de sobrescribirlo. La calculadora y finalizar una compra no se incluyen en este botón.
+
+El lector de códigos usa ZXing, cargado al abrir la cámara. Requiere permiso del navegador; escribir el código es una alternativa. Los códigos se asocian al catálogo propio y se guardan con el hogar. Un código desconocido puede vincularse a un producto existente. La cámara se detiene al cerrar el lector o reconocer el código.
