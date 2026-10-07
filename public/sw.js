@@ -1,0 +1,3 @@
+self.addEventListener('install',()=>self.skipWaiting());
+self.addEventListener('activate',e=>e.waitUntil(self.clients.claim()));
+self.addEventListener('fetch',event=>{if(event.request.mode==='navigate')event.respondWith(fetch(event.request).catch(()=>new Response('<!doctype html><html lang="es"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rodme Home</title><body style="font:18px system-ui;padding:32px"><h1>Rodme Home 🏠</h1><p>Conéctate a internet para continuar con tus compras y guardar tus cambios.</p><button onclick="location.reload()">Volver a intentar</button></body></html>',{headers:{'Content-Type':'text/html; charset=utf-8'}})));});
