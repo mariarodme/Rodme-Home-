@@ -107,3 +107,12 @@ test('calendar saves products by date and compares actual stock without treating
  fireEvent.click(screen.getByRole('button',{name:'Quitar Jabón Dove Rosado de esta fecha'}));await waitFor(()=>assert.deepEqual(home.lists[0].productIds,['rice']));
  fireEvent.click(screen.getByRole('button',{name:'Abrir lista para comprar'}));assert.equal(document.querySelectorAll('.product-row').length,1);
 });
+
+test('calendar creates a missing product and schedules it without leaving the selected date',async()=>{
+ let home=sample(),revision=1;const request=(async(_url:any,init:any={})=>{if(init.method==='POST'){home=JSON.parse(init.body).home;revision++;}return Response.json({home,revision});}) as typeof fetch;
+ render(<HomeApp request={request}/>);await screen.findByRole('heading',{name:'Rodme Home 🏠',exact:true});await menu('📅 Calendario de compras');fireEvent.change(screen.getByLabelText('Ir a una fecha'),{target:{value:'2026-12-15'}});
+ fireEvent.change(screen.getByLabelText('Buscar producto',{exact:true}),{target:{value:'Galletas de avena'}});fireEvent.click(screen.getByRole('button',{name:'＋ No está: crear producto aquí'}));assert.equal((screen.getByLabelText('Nombre del nuevo producto') as HTMLInputElement).value,'Galletas de avena');
+ fireEvent.change(screen.getByLabelText('Sección del nuevo producto'),{target:{value:'food'}});fireEvent.change(screen.getByLabelText('Cantidad que necesito'),{target:{value:'2'}});fireEvent.click(screen.getByRole('button',{name:'Crear y guardar en esta fecha'}));await screen.findByText('Por revisar: existencias sin registrar');assert.ok(within(document.querySelector('.calendar-product')!).getByText('Galletas de avena'));
+ const p=home.products.find(p=>p.name==='Galletas de avena')!;assert.equal(p.sectionId,'food');assert.equal(p.pantryLots,undefined);assert.equal(p.image,'');assert.equal(home.lists[0].scheduledDate,'2026-12-15');assert.equal(home.lists[0].plannedQuantities[p.id],2);assert.equal(home.cart.length,0);assert.ok(screen.getByRole('heading',{name:'📅 Calendario de compras'}));
+ fireEvent.click(screen.getByRole('button',{name:'＋ No está: crear producto aquí'}));fireEvent.change(screen.getByLabelText('Nombre del nuevo producto'),{target:{value:'  GALLETAS DE AVENA  '}});fireEvent.click(screen.getByRole('button',{name:'Crear y guardar en esta fecha'}));await waitFor(()=>assert.equal(home.lists[0].plannedQuantities[p.id],1));assert.equal(home.products.length,3);assert.equal(home.lists[0].productIds.length,1);
+});
