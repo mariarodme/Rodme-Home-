@@ -2,7 +2,7 @@
 
 Aplicación personal de organización del hogar y compras, basada en la exportación original de Notion.
 
-Aplicación: https://rodme-home.anrodriguezme.chatgpt.site
+Aplicación: https://mariarodme.github.io/Rodme-Home-/
 
 Incluye productos, tiendas, secciones y listas editables; Modo Supermercado; calculadora con suma, resta, multiplicación y división; carrito, presupuesto e historial; subida de imágenes y aplicación instalable.
 
