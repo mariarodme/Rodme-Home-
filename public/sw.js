@@ -14,5 +14,5 @@ self.addEventListener('fetch',event=>{
    return Promise.race([network.catch(()=>cached),new Promise(resolve=>setTimeout(()=>resolve(cached),1500))]);
   })());return;
  }
- event.respondWith((async()=>{const cached=await caches.match(event.request);if(cached)return cached;const response=await fetch(event.request);if(response.ok&&url.pathname.includes('/images/')){const cache=await caches.open(CACHE);try{await cache.put(event.request,response.clone());}catch{}}return response;})());
+ event.respondWith((async()=>{const cached=await caches.match(event.request);if(cached)return cached;const response=await fetch(event.request);if(response.ok&&(url.pathname.includes('/images/')||url.pathname.includes('/ocr/'))){const cache=await caches.open(CACHE);try{await cache.put(event.request,response.clone());}catch{}}return response;})());
 });

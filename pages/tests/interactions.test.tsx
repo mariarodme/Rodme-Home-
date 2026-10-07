@@ -1,3 +1,4 @@
+import PhotoShopping from '../../app/photo-shopping';
 import BarcodeScanner from '../../app/barcode-scanner';
 import './dom-setup';
 import {indexedDB,IDBKeyRange} from 'fake-indexeddb';
@@ -60,4 +61,9 @@ test('scanner manually finds a stored product and stops camera on a decoded barc
  const readerFactory=async()=>({decodeFromConstraints:async(_constraints:any,_video:any,callback:any)=>{const controls={stop:()=>stops++};callback({getText:()=> '7501000123456'},undefined,controls);return controls;}});
  render(<BarcodeScanner home={home} busy={false} onProduct={p=>picked=p.id} onAssign={async()=>true} readerFactory={readerFactory}/>);fireEvent.click(screen.getByRole('button',{name:'📷 Buscar por código de barras'}));fireEvent.change(screen.getByLabelText('Código de barras'),{target:{value:'7501000123456'}});fireEvent.click(screen.getByRole('button',{name:'Buscar código',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Agregar este producto'}));assert.equal(picked,'soap');
  fireEvent.click(screen.getByRole('button',{name:'Abrir cámara'}));await waitFor(()=>assert.ok(stops>=1));await waitFor(()=>assert.equal(document.querySelector('video'),null));
+});
+
+test('photo price is read but only added after confirmation and can be corrected first',async()=>{
+ const originalCreate=URL.createObjectURL,originalRevoke=URL.revokeObjectURL;URL.createObjectURL=()=> 'blob:test';URL.revokeObjectURL=()=>{};let amount=0;
+ try{render(<PhotoShopping busy={false} upload={async()=>''} readPhoto={async()=> 'PRECIO ₡2.500'} onPrice={async value=>{amount=value;return true}} onProduct={async()=>true}/>);fireEvent.click(screen.getByRole('button',{name:'📷 Foto rápida'}));fireEvent.change(screen.getByLabelText('Foto rápida'),{target:{files:[new File(['photo'],'label.jpg',{type:'image/jpeg'})]}});await waitFor(()=>assert.equal((screen.getByLabelText('Monto de la foto') as HTMLInputElement).value,'2500'));assert.equal(amount,0);fireEvent.change(screen.getByLabelText('Monto de la foto'),{target:{value:'2600'}});fireEvent.click(screen.getByRole('button',{name:'Sumar ₡2 600'}));await waitFor(()=>assert.equal(amount,2600));}finally{URL.createObjectURL=originalCreate;URL.revokeObjectURL=originalRevoke;}
 });

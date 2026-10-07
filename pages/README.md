@@ -42,3 +42,11 @@ Las listas pueden marcarse como habituales semanales o mensuales. Revisar faltan
 Deshacer último cambio guarda una sola operación durante la sesión. Revierte los campos modificados y conserva cambios independientes compartidos. Si el mismo dato cambió después, solicita revisarlo en lugar de sobrescribirlo. La calculadora y finalizar una compra no se incluyen en este botón.
 
 El lector de códigos usa ZXing, cargado al abrir la cámara. Requiere permiso del navegador; escribir el código es una alternativa. Los códigos se asocian al catálogo propio y se guardan con el hogar. Un código desconocido puede vincularse a un producto existente. La cámara se detiene al cerrar el lector o reconocer el código.
+
+### Foto rápida
+
+En Modo Supermercado, Foto rápida ofrece Foto del precio y Foto del producto. El precio se lee con OCR local (Tesseract.js), se muestra para confirmar o corregir y solo se suma al tocar Sumar. Si la etiqueta contiene varios números, hay que seleccionar el precio correcto. Una foto borrosa puede requerir escribir el monto manualmente. Los montos quedan en la expresión de la calculadora y se pueden editar o borrar.
+
+Foto del producto guarda la imagen junto con nombre, cantidad y precio opcional en el carrito. Un nombre existente reutiliza el producto; su foto original se conserva. Si ya existe una cuenta de calculadora, el importe del producto también actualiza ese total.
+
+El worker, el motor y el modelo OCR se copian desde dependencias fijadas por package-lock al directorio ocr durante la compilación. Las imágenes de las etiquetas se procesan en el dispositivo y no se envían a un servicio de IA. Los recursos OCR se descargan al usarlos por primera vez y el service worker los conserva para uso posterior sin conexión, cuando el almacenamiento del navegador lo permite. No se incluyen en la descarga inicial de la aplicación.
