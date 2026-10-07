@@ -1,3 +1,4 @@
+import {validPlanDate} from '../lib/shopping-calendar';
 import {locations} from '../lib/pantry';
 import {calculate} from '../lib/calculator';
 import {Home, cartTotal, lineTotal, total, quickSteps, operationLabel} from '../lib/model';
@@ -28,6 +29,10 @@ export function valid(h: any): h is Home {
   }
   const codes=h.products.map((p:any)=>p.barcode).filter(Boolean);if(new Set(codes).size!==codes.length)return false;
   if(h.lists.some((l:any)=>l.routine!==undefined&&l.routine!==''&&!['weekly','monthly'].includes(l.routine)))return false;
+  for(const l of h.lists){
+    if(l.scheduledDate!==undefined&&!validPlanDate(l.scheduledDate))return false;
+    if(l.plannedQuantities!==undefined&&(typeof l.plannedQuantities!=='object'||l.plannedQuantities===null||Array.isArray(l.plannedQuantities)||Object.values(l.plannedQuantities).some((n:any)=>!Number.isFinite(n)||n<=0||n>100000)))return false;
+  }
   if (h.budget !== null && (!Number.isFinite(h.budget) || h.budget < 0)) return false;
   if (h.calculatorExpression !== undefined && (typeof h.calculatorExpression !== 'string' || h.calculatorExpression.length > 2000 || calculate(h.calculatorExpression).value === null)) return false;
   if (h.quickCart !== undefined) {

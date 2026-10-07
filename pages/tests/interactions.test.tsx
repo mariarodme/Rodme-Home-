@@ -92,3 +92,18 @@ test('supermarket-style home uses the original cover and category and header sea
  fireEvent.change(screen.getByLabelText('Buscar en Rodme Home'),{target:{value:'Arroz'}});fireEvent.click(screen.getByRole('button',{name:'Buscar en el catálogo'}));
  assert.equal((screen.getByLabelText('Buscar productos') as HTMLInputElement).value,'Arroz');assert.equal(document.querySelectorAll('.product-row').length,1);assert.ok(document.querySelector('.product-row')?.textContent?.includes('Arroz'));
 });
+
+test('calendar saves products by date and compares actual stock without treating unknown stock as empty',async()=>{
+ let home=sample(),revision=1;home.products[1].pantryLots=[{id:'lot',quantity:2,expiry:''}];
+ const request=(async(_url:any,init:any={})=>{if(init.method==='POST'){home=JSON.parse(init.body).home;revision++;}return Response.json({home,revision});}) as typeof fetch;
+ render(<HomeApp request={request}/>);await screen.findByRole('heading',{name:'Rodme Home 🏠',exact:true});await menu('📅 Calendario de compras');
+ fireEvent.change(screen.getByLabelText('Ir a una fecha'),{target:{value:'2026-11-15'}});
+ fireEvent.change(screen.getByLabelText('Producto para esta fecha'),{target:{value:'rice'}});fireEvent.change(screen.getByLabelText('Cantidad que necesito'),{target:{value:'3'}});fireEvent.click(screen.getByRole('button',{name:'Guardar producto en esta fecha'}));
+ await screen.findByText('Tengo 2 · Falta comprar 1');assert.equal(home.lists[0].scheduledDate,'2026-11-15');assert.equal(home.lists[0].plannedQuantities.rice,3);assert.equal(home.cart.length,0);assert.equal(home.products[1].pantryLots[0].quantity,2);
+ fireEvent.change(screen.getByLabelText('Producto para esta fecha'),{target:{value:'soap'}});fireEvent.click(screen.getByRole('button',{name:'Guardar producto en esta fecha'}));await screen.findByText('Por revisar: existencias sin registrar');
+ fireEvent.change(screen.getByLabelText('Ir a una fecha'),{target:{value:'2026-11-16'}});assert.equal(document.querySelectorAll('.calendar-product').length,0);
+ fireEvent.change(screen.getByLabelText('Ir a una fecha'),{target:{value:'2026-11-15'}});assert.equal(document.querySelectorAll('.calendar-product').length,2);
+ const amount=screen.getByLabelText('Cantidad programada de Arroz');fireEvent.change(amount,{target:{value:'1'}});fireEvent.blur(amount);await screen.findByText('Tengo 2 · Ya hay suficiente');
+ fireEvent.click(screen.getByRole('button',{name:'Quitar Jabón Dove Rosado de esta fecha'}));await waitFor(()=>assert.deepEqual(home.lists[0].productIds,['rice']));
+ fireEvent.click(screen.getByRole('button',{name:'Abrir lista para comprar'}));assert.equal(document.querySelectorAll('.product-row').length,1);
+});
