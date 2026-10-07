@@ -2,7 +2,7 @@
 
 Aplicación personal de organización del hogar y compras, basada en la exportación original de Notion.
 
-Aplicación: https://mariarodme.github.io/Rodme-Home-/
+Aplicación: [https://mariarodme.github.io/Rodme-Home-/](https://mariarodme.github.io/MI-CALENDARIO-DE-TURNOS/)
 
 ## Funciones
 
