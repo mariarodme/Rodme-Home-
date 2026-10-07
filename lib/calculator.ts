@@ -38,3 +38,14 @@ export function removeNumber(expression:string,index:number):string {
  else{const right=expression.slice(to).match(/^\s*[+\-*/×÷−]/);if(right)to+=right[0].length;}
  return expression.slice(0,from)+expression.slice(to);
 }
+
+export function replaceNumber(expression:string,index:number,amount:string):string {
+ const value=amount.trim();
+ if(!/^(?:\d+(?:[.,]\d*)?|[.,]\d+)$/.test(value)||!Number.isFinite(Number(value.replace(',','.'))))throw new Error('Escribe un monto válido.');
+ const token=[...expression.matchAll(/(?:\d+(?:[.,]\d*)?|[.,]\d+)/g)][index];
+ if(!token)throw new Error('Este monto ya no existe.');
+ const next=expression.slice(0,token.index!)+value+expression.slice(token.index!+token[0].length);
+ if(next.length>2000)throw new Error('La cuenta es demasiado larga.');
+ const result=calculate(next,true);if(result.value===null)throw new Error(result.error||'Revisa la cuenta antes de cambiar este monto.');
+ return next;
+}

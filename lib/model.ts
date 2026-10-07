@@ -4,7 +4,7 @@ export type Product = Entity & { storeId: string; sectionId: string; purchased: 
 export type CartItem = { productId: string; quantity: number; price: number | null; discount: number };
 export type Operation = 'add' | 'subtract' | 'multiply' | 'divide';
 export type QuickItem = { id: string; amount: number; operation?: Operation };
-export type Home = { products: Product[]; stores: Entity[]; sections: Entity[]; lists: Entity[]; cover: string; cart: CartItem[]; quickCart?: QuickItem[]; calculatorExpression?: string; photoCatalogVersion?: number; budget: number | null; cartStoreId: string; cartListId: string; history: any[] };
+export type Home = { products: Product[]; stores: Entity[]; sections: Entity[]; lists: Entity[]; cover: string; cart: CartItem[]; quickCart?: QuickItem[]; calculatorExpression?: string; photoCatalogVersion?: number; budget: number | null; cartStoreId: string; cartListId: string; history: any[]; storeRoutes?: Record<string,string[]> };
 export const lineTotal = (item: CartItem) => Math.max(0, Math.round(((item.price || 0) * item.quantity - item.discount) * 100) / 100);
 export const total = (cart: CartItem[]) => Math.round(cart.reduce((s, i) => s + lineTotal(i), 0) * 100) / 100;
 export const operationSymbol = (operation: Operation = 'add') => ({add: '+', subtract: '−', multiply: '×', divide: '÷'})[operation];

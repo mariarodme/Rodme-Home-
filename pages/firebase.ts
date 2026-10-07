@@ -1,9 +1,9 @@
 import {initializeApp} from 'firebase/app';
 import {getAuth, GoogleAuthProvider, signInWithPopup, browserLocalPersistence, setPersistence} from 'firebase/auth';
-import {getFirestore} from 'firebase/firestore';
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager} from 'firebase/firestore';
 const app=initializeApp({apiKey:'AIzaSyA-tKXyjqwD45RA6Zel-dbk77TH757LOBk',authDomain:'rodme-home.firebaseapp.com',projectId:'rodme-home',storageBucket:'rodme-home.firebasestorage.app',messagingSenderId:'340185409440',appId:'1:340185409440:web:b4f2dbbe224d114542a6c5'});
 export const auth=getAuth(app);
-export const db=getFirestore(app);
+export const db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});
 export async function login(){
  await setPersistence(auth,browserLocalPersistence);
  const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
