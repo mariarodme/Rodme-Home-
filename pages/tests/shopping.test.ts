@@ -20,3 +20,24 @@ test('offline changes survive reload and merge when connection returns',async()=
 test('offline conflict holds changes until chosen, preserving unrelated edits',async()=>{const f=setup(),first=await f.engine.load();f.setOnline(false);first.home.budget=1000;first.home.products[0].notes='my note';await f.engine.save(first,h=>h);f.editRemote(h=>{h.budget=2000;h.products[1].notes='sister note'});f.setOnline(true);await f.engine.load();assert.equal(f.engine.status.conflicts.length,1);assert.equal(f.cache()?.pending,true);await f.engine.resolve({'/budget':'remote'});assert.equal(f.remote().home.budget,2000);assert.equal(f.remote().home.products[0].notes,'my note');assert.equal(f.remote().home.products[1].notes,'sister note');});
 test('a failed network commit keeps a durable pending change for retry',async()=>{const f=setup(),first=await f.engine.load();first.home.budget=5000;f.setFail(true);const saved=await f.engine.save(first,h=>h);assert.equal(saved.pending,true);assert.equal(f.cache()?.home.budget,5000);f.setFail(false);await f.engine.load();assert.equal(f.remote().home.budget,5000);assert.equal(f.cache()?.pending,false);});
 test('offline checkout is saved once, resets cart, clears running-low flag',async()=>{const f=setup(),first=await f.engine.load();first.home.cart=[{productId:'soap',price:100,quantity:2,discount:10}];first.home.products[0].runningLow=true;const saved=await f.engine.save(first,h=>h);f.setOnline(false);const done=await f.engine.save({...saved,action:'checkout',checkoutId:'receipt-1'},(h,b)=>checkout(h,b));assert.equal(done.home.history[0].total,190);assert.equal(done.home.cart.length,0);assert.equal(done.home.products[0].runningLow,false);f.editRemote(h=>h.products[1].notes='remote');f.setOnline(true);await f.engine.load();await f.engine.load();assert.equal(f.remote().home.history.filter(r=>r.id==='receipt-1').length,1);assert.equal(f.remote().home.products[1].notes,'remote');assert.equal(valid(f.remote().home),true);});
+
+test('cached startup returns before a slow server and the next refresh fetches changes',async()=>{
+ const f=setup();await f.engine.load();
+ f.editRemote(h=>{h.budget=4321});
+ f.setFail(true);
+ const cached=await f.engine.load(true);
+ assert.notEqual(cached.home.budget,4321);
+ assert.equal(f.engine.status.error,'');
+ f.setFail(false);
+ const refreshed=await f.engine.load();
+ assert.equal(refreshed.home.budget,4321);
+});
+
+test('cached startup preserves pending local edits until the background refresh',async()=>{
+ const f=setup();const first=await f.engine.load();f.setOnline(false);
+ first.home.budget=7654;await f.engine.save(first,h=>h);f.setOnline(true);
+ const cached=await f.engine.load(true);
+ assert.equal(cached.pending,true);assert.equal(cached.home.budget,7654);
+ assert.notEqual(f.remote().home.budget,7654);
+ await f.engine.load();assert.equal(f.remote().home.budget,7654);
+});

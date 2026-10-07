@@ -25,8 +25,9 @@ export class SyncEngine {
    await this.accept(result);this.notify();
   }catch(e){this.notify((e as Error).message||'No pudimos sincronizar. Tus cambios siguen guardados aquí.');}
  }
- async load(){return this.serial(async()=>{
+ async load(preferCache=false){return this.serial(async()=>{
   await this.init();
+  if(preferCache&&this.cache){this.notify();return this.snapshot();}
   if(this.cache?.pending)await this.flush();
   if(this.online()&&!this.cache?.pending){try{await this.accept(await this.backend.read());this.notify();}catch(e){if(!this.cache)throw e;this.notify((e as Error).message);}}
   else this.notify();return this.snapshot();

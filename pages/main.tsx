@@ -1,9 +1,9 @@
-import React,{useEffect,useMemo,useState} from 'react';
+import React,{useEffect,useMemo,useState,lazy,Suspense} from 'react';
 import {createRoot} from 'react-dom/client';
 import {onAuthStateChanged,signOut,User} from 'firebase/auth';
 import {auth,login,friendlyError} from './firebase';
 import {currentHome,createHome,joinHome,inviteHome,transport,uploadImage,imageUrl,base,watchHome,watchStatus,syncStatus,resolveSync} from './storage';
-import HomeApp from '../app/home-app';
+const HomeApp=lazy(()=>import('../app/home-app'));
 import type {SyncStatus} from './sync-engine';
 import '../app/globals.css';
 import './style.css';
@@ -13,7 +13,7 @@ function App(){
  const request=useMemo(()=>homeId?transport(homeId):undefined,[homeId]);
  useEffect(()=>onAuthStateChanged(auth,async next=>{
   setUser(next);setHomeId(null);setSharing('');setLoading(true);setError('');
-  try{if(next){const id=await currentHome();if(auth.currentUser?.uid===next.uid)setHomeId(id);}}catch(e){setError(friendlyError(e));}finally{setLoading(false);}
+  try{if(next){const id=await currentHome(updated=>{if(auth.currentUser?.uid===next.uid)setHomeId(updated);});if(auth.currentUser?.uid===next.uid)setHomeId(id);}}catch(e){setError(friendlyError(e));}finally{setLoading(false);}
  }),[]);
  useEffect(()=>{
   if(!homeId||!user)return;
@@ -43,7 +43,7 @@ function App(){
   {sync.conflicts.map(c=><label key={c.path}>{c.label}<select required value={choices[c.path]||''} onChange={e=>setChoices({...choices,[c.path]:e.target.value as 'local'|'remote'})}><option value="">Elige una versión</option><option value="local">Mi cambio: {describe(c.local)}</option><option value="remote">El otro cambio: {describe(c.remote)}</option></select></label>)}<button className="primary" disabled={busy||sync.offline}>Guardar selección</button></form></details>}
  </aside>;
  const controls=<div className="household"><h2>Tu cuenta y hogar</h2><p>{user.email}</p><button disabled={busy} onClick={()=>work(async()=>{setSharing(await inviteHome(homeId));})}>Compartir mi hogar</button>{sharing&&<><p>Quien reciba esta invitación podrá ver y editar tus listas y compras al entrar con Google.</p><label>Enlace para compartir<input value={sharing} readOnly onFocus={e=>e.target.select()}/></label><button onClick={()=>work(async()=>{await navigator.clipboard.writeText(sharing);})}>Copiar enlace</button></>}<button disabled={busy} onClick={()=>{setInvite('');setJoinOpen(true);}}>Unirme a otro hogar</button><button disabled={busy} onClick={exit}>Cerrar sesión</button>{error&&<p role="alert">{error}</p>}</div>;
- return <HomeApp key={homeId} request={request} imageUpload={uploadImage} imageUrl={imageUrl} subscribeHome={subscribe} syncControls={syncControls} sessionControls={controls} serviceWorkerPath={base+'sw.js'} signIn={enter}/>;
+ return <Suspense fallback={<main className="loading"><p>Abriendo tus listas…</p></main>}><HomeApp key={homeId} request={request} imageUpload={uploadImage} imageUrl={imageUrl} subscribeHome={subscribe} syncControls={syncControls} sessionControls={controls} serviceWorkerPath={base+'sw.js'} signIn={enter}/></Suspense>;
 }
 function describe(value:unknown){if(value===undefined)return 'Eliminado';if(typeof value==='boolean')return value?'Sí':'No';if(typeof value==='string'||typeof value==='number')return String(value).slice(0,90)||'Vacío';if(value&&typeof value==='object'&&'name'in value)return String(value.name);return Array.isArray(value)?`${value.length} elementos`:'Datos modificados';}
 createRoot(document.getElementById('root')!).render(<App/>);

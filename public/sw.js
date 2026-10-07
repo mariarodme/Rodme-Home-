@@ -7,7 +7,12 @@ self.addEventListener('fetch',event=>{
  const url=new URL(event.request.url);
  if(event.request.method!=='GET'||url.origin!==self.location.origin||!url.href.startsWith(scope)||url.pathname.includes('/api/'))return;
  if(event.request.mode==='navigate'){
-  event.respondWith(fetch(event.request).catch(async()=>{const cached=await caches.match(new URL('index.html',scope).href);return cached||new Response('Abre Rodme Home una vez con internet para usarla sin conexión.',{headers:{'Content-Type':'text/plain; charset=utf-8'}});}));return;
+  const network=fetch(event.request);
+  event.respondWith((async()=>{
+   const cached=await caches.match(new URL('index.html',scope).href);
+   if(!cached)return network;
+   return Promise.race([network.catch(()=>cached),new Promise(resolve=>setTimeout(()=>resolve(cached),1500))]);
+  })());return;
  }
- event.respondWith((async()=>{const cached=await caches.match(event.request);if(cached)return cached;return fetch(event.request);})());
+ event.respondWith((async()=>{const cached=await caches.match(event.request);if(cached)return cached;const response=await fetch(event.request);if(response.ok&&url.pathname.includes('/images/')){const cache=await caches.open(CACHE);try{await cache.put(event.request,response.clone());}catch{}}return response;})());
 });

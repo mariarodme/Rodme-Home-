@@ -3,8 +3,6 @@ import {readCache,writeCache} from './offline-cache';
 import {SyncEngine,type SyncStatus} from './sync-engine';
 import {db,auth,friendlyError} from './firebase';
 import type {Home} from '../lib/model';
-import seed from '../lib/seed.json';
-import {addCatalogPhotos} from '../lib/catalog-photos';
 import {valid,checkout} from './home-actions';
 const CHUNK=300000;
 const clone=<T,>(value:T):T=>JSON.parse(JSON.stringify(value));
@@ -14,10 +12,25 @@ function serialize(home:Home){const text=JSON.stringify(home);if(new TextEncoder
 const stateRef=(id:string)=>doc(db,'homes',id,'state','current');
 const chunkRef=(id:string,index:number)=>doc(db,'homes',id,'chunks',String(index));
 function uid(){if(!auth.currentUser)throw new Error('Inicia sesión con Google.');return auth.currentUser.uid;}
-export async function currentHome(){const key='rodme-home-profile:'+uid();if(!navigator.onLine)return localStorage.getItem(key);const profile=await getDoc(doc(db,'users',uid()));const id=profile.exists()?profile.data().homeId as string:null;if(id)localStorage.setItem(key,id);return id;}
+export async function currentHome(onUpdate?:(id:string|null)=>void){
+ const owner=uid(),key='rodme-home-profile:'+owner,cached=localStorage.getItem(key);
+ const refresh=async()=>{
+  const profile=await getDoc(doc(db,'users',owner));
+  const id=profile.exists()?profile.data().homeId as string:null;
+  if(id)localStorage.setItem(key,id);else localStorage.removeItem(key);
+  return id;
+ };
+ if(cached){
+  if(navigator.onLine)void refresh().then(id=>{if(id!==cached&&auth.currentUser?.uid===owner)onUpdate?.(id);}).catch(()=>{});
+  return cached;
+ }
+ if(!navigator.onLine)return null;
+ return refresh();
+}
 function requireConnection(){if(!navigator.onLine)throw new Error('Conéctate a internet para crear o compartir un hogar.');}
 export async function createHome(){
  requireConnection();
+ const [{default:seed},{addCatalogPhotos}]=await Promise.all([import('../lib/seed.json'),import('../lib/catalog-photos')]);
  const owner=uid(),id=crypto.randomUUID(),home=clone(seed) as Home;addCatalogPhotos(home);
  const batch=writeBatch(db),chunks=serialize(home);
  batch.set(doc(db,'homes',id),{owner});batch.set(doc(db,'homes',id,'members',owner),{owner:true});
@@ -73,11 +86,12 @@ export function watchHome(id:string,callback:()=>void){
 }
 export async function resolveSync(id:string,choices:Record<string,'local'|'remote'>){const run=()=>engine(id).resolve(choices);return navigator.locks?navigator.locks.request('rodme-home:'+uid()+':'+id,run):run();}
 export function transport(id:string):typeof fetch{
+ let firstRead=true;
  return (async(_input:RequestInfo|URL,init?:RequestInit)=>{
   if(!auth.currentUser)return Response.json({error:'Inicia sesión con Google.'},{status:401});
   try{
    const run=async()=>{
-    if(init?.method!=='POST')return engine(id).load();
+    if(init?.method!=='POST'){const preferCache=firstRead;firstRead=false;return engine(id).load(preferCache);}
     const body=JSON.parse(init.body as string);
     return engine(id).save(body,(home,payload)=>{
      if(!valid(home))throw new Error('Revisa los datos: el archivo o los valores no son válidos.');
