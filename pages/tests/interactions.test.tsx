@@ -81,3 +81,14 @@ test('location cards filter original photos and empty reset, while compact shopp
  fireEvent.click(screen.getByRole('button',{name:'Mis productos',exact:true}));fireEvent.click(screen.getByText('Tienda y lista de esta compra'));fireEvent.change(screen.getByLabelText('Tienda de esta compra'),{target:{value:'other'}});await waitFor(()=>assert.equal(home.cartStoreId,'other'));
  assert.equal(screen.getByRole('button',{name:'🛒 Supermercado',exact:true}).getAttribute('aria-current'),'page');
 });
+
+
+test('supermarket-style home uses the original cover and category and header search open the correct products',async()=>{
+ const home=sample();home.cover='/images/original-cover.jpg';const request=(async()=>Response.json({home,revision:1})) as typeof fetch;
+ render(<HomeApp request={request}/>);await screen.findByRole('heading',{name:'Rodme Home 🏠'});
+ assert.equal(screen.getByAltText('Portada de Rodme Home').getAttribute('src'),home.cover);
+ fireEvent.click(within(document.querySelector('.shop-category-grid') as HTMLElement).getByRole('button',{name:'Cuidado Personal',exact:true}));
+ assert.equal((screen.getByLabelText('Filtrar por sección') as HTMLSelectElement).value,'care');assert.equal(document.querySelectorAll('.product-row').length,1);
+ fireEvent.change(screen.getByLabelText('Buscar en Rodme Home'),{target:{value:'Arroz'}});fireEvent.click(screen.getByRole('button',{name:'Buscar en el catálogo'}));
+ assert.equal((screen.getByLabelText('Buscar productos') as HTMLInputElement).value,'Arroz');assert.equal(document.querySelectorAll('.product-row').length,1);assert.ok(document.querySelector('.product-row')?.textContent?.includes('Arroz'));
+});

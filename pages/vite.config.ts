@@ -17,4 +17,4 @@ function offlineShell(){return {name:'rodme-offline-shell',closeBundle(){
  const source=readFileSync(new URL('../public/sw.js',import.meta.url),'utf8').replace('/*PRECACHE*/ []',JSON.stringify(files)).replace('rodme-offline-dev','rodme-offline-'+version);
  writeFileSync(join(output,'sw.js'),source);
 }};}
-export default defineConfig({root:fileURLToPath(new URL('.',import.meta.url)),base:'/Rodme-Home-/',publicDir:'../public',plugins:[react(),offlineShell()],css:{postcss:{plugins:[]}},build:{outDir:output,emptyOutDir:true},resolve:{dedupe:['react','react-dom']}});
+export default defineConfig({root:fileURLToPath(new URL('.',import.meta.url)),base:'/Rodme-Home-/',publicDir:'../public',plugins:[react(),offlineShell()],css:{postcss:{plugins:[]}},build:{outDir:output,emptyOutDir:true,rollupOptions:{input:{app:fileURLToPath(new URL('./index.html',import.meta.url)),preview:fileURLToPath(new URL('./preview.html',import.meta.url))}}},resolve:{dedupe:['react','react-dom']}});
