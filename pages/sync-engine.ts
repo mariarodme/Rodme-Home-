@@ -1,3 +1,4 @@
+import {classifyProducts} from '../lib/classify-products';
 import type {Home} from '../lib/model';
 import {copy,mergeHomes,type Conflict} from './merge';
 import type {CachedHome} from './offline-cache';
@@ -12,6 +13,7 @@ export class SyncEngine {
  constructor(private backend:SyncBackend,private persistence:{read:()=>Promise<CachedHome|undefined>;write:(value:CachedHome)=>Promise<void>},private online:()=>boolean,private changed:()=>void=()=>{}){}
  private async serial<T>(work:()=>Promise<T>):Promise<T>{const next=this.queue.then(work,work);this.queue=next.catch(()=>{});return next;}
  private async init(){this.cache=await this.persistence.read();}
+ private async classify(){if(!this.cache)return;const home=copy(this.cache.home);if(classifyProducts(home))await this.persist({...this.cache,home,viewRevision:this.cache.viewRevision+1,pending:true});}
  private notify(error=''){this.status={...this.status,pending:!!this.cache?.pending,offline:!this.online(),error};this.changed();}
  private async persist(value:CachedHome){await this.persistence.write(value);this.cache=value;}
  private snapshot(){if(!this.cache)throw new Error('Abre este hogar con internet una vez para usarlo sin conexión.');this.views.set(this.cache.viewRevision,copy(this.cache.home));if(this.views.size>30)this.views.delete(this.views.keys().next().value!);return {home:copy(this.cache.home),revision:this.cache.viewRevision,pending:this.cache.pending};}
@@ -26,11 +28,11 @@ export class SyncEngine {
   }catch(e){this.notify((e as Error).message||'No pudimos sincronizar. Tus cambios siguen guardados aquí.');}
  }
  async load(preferCache=false){return this.serial(async()=>{
-  await this.init();
+  await this.init();await this.classify();
   if(preferCache&&this.cache){this.notify();return this.snapshot();}
   if(this.cache?.pending)await this.flush();
   if(this.online()&&!this.cache?.pending){try{await this.accept(await this.backend.read());this.notify();}catch(e){if(!this.cache)throw e;this.notify((e as Error).message);}}
-  else this.notify();return this.snapshot();
+  else this.notify();await this.classify();if(this.cache?.pending&&!this.status.conflicts.length)await this.flush();return this.snapshot();
  });}
  async save(body:any,prepare:(home:Home,body:any)=>Home){return this.serial(async()=>{
   await this.init();if(!this.cache)throw new Error('Primero abre el hogar.');

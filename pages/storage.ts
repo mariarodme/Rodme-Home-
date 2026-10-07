@@ -3,6 +3,7 @@ import {readCache,writeCache} from './offline-cache';
 import {SyncEngine,type SyncStatus} from './sync-engine';
 import {db,auth,friendlyError} from './firebase';
 import type {Home} from '../lib/model';
+import {classifyProducts} from '../lib/classify-products';
 import {valid,checkout} from './home-actions';
 const CHUNK=300000;
 const clone=<T,>(value:T):T=>JSON.parse(JSON.stringify(value));
@@ -31,7 +32,7 @@ function requireConnection(){if(!navigator.onLine)throw new Error('Conéctate a 
 export async function createHome(){
  requireConnection();
  const [{default:seed},{addCatalogPhotos}]=await Promise.all([import('../lib/seed.json'),import('../lib/catalog-photos')]);
- const owner=uid(),id=crypto.randomUUID(),home=clone(seed) as Home;addCatalogPhotos(home);
+ const owner=uid(),id=crypto.randomUUID(),home=clone(seed) as Home;addCatalogPhotos(home);classifyProducts(home);
  const batch=writeBatch(db),chunks=serialize(home);
  batch.set(doc(db,'homes',id),{owner});batch.set(doc(db,'homes',id,'members',owner),{owner:true});
  batch.set(stateRef(id),{revision:0,chunkCount:chunks.length});chunks.forEach((data,i)=>batch.set(chunkRef(id,i),{data}));
@@ -95,6 +96,7 @@ export function transport(id:string):typeof fetch{
     const body=JSON.parse(init.body as string);
     return engine(id).save(body,(home,payload)=>{
      if(!valid(home))throw new Error('Revisa los datos: el archivo o los valores no son válidos.');
+     classifyProducts(home);
      const result=payload.action==='checkout'?checkout(home,payload):home;
      if(!valid(result))throw new Error('Revisa los datos antes de guardar.');serialize(result);return result;
     });

@@ -1,5 +1,5 @@
 import {Home, Product} from './model';
-export const locations=['Alacena','Refrigeradora','Congelador','Limpieza','Baño'];
+export const locations=['Alacena','Refrigeradora','Congelador','Limpieza','Baño','Mascotas'];
 export type Lot={id:string;quantity:number;expiry:string};
 export const stock=(p:Product):number|undefined=>p.pantryLots===undefined?undefined:(p.pantryLots as Lot[]).reduce((s,l)=>s+l.quantity,0);
 export function replenish(p:Product){if(p.autoRestock&&stock(p)!==undefined&&stock(p)!<=Number(p.minimumStock||0)){p.purchased=false;p.runningLow=true;}}
