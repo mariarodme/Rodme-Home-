@@ -1,3 +1,4 @@
+import {stock,consume,addStock,receivePurchase,unitPrice,quickAdd} from '../../lib/pantry';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {repeatPurchase,pricesByStore,routeSections} from '../../lib/shopping';
@@ -41,3 +42,9 @@ test('cached startup preserves pending local edits until the background refresh'
  assert.notEqual(f.remote().home.budget,7654);
  await f.engine.load();assert.equal(f.remote().home.budget,7654);
 });
+
+test('pantry consumes earliest expiry first, never negative, and replenishes without duplicating products',()=>{const h=sample(),p=h.products[0];assert.equal(stock(p),undefined);p.autoRestock=true;p.minimumStock=2;addStock(p,3,'2027-01-01','later');addStock(p,2,'2026-11-01','first');consume(p,3);assert.equal(stock(p),2);assert.deepEqual(p.pantryLots,[{id:'later',quantity:2,expiry:'2027-01-01'}]);assert.equal(p.purchased,false);assert.equal(p.runningLow,true);consume(p,99);assert.equal(stock(p),0);assert.equal(h.products.length,2);assert.equal(valid(h),true);});
+test('purchase intake confirms quantities and location exactly once and ignores calculation rows',()=>{const h=sample();h.history=[{id:'purchase',items:[{productId:'soap',quantity:2},{productId:null}]}];const rows=[{productId:'soap',quantity:2,location:'Baño',expiry:'2027-01-01'}];receivePurchase(h,'purchase',rows);receivePurchase(h,'purchase',rows);assert.equal(stock(h.products[0]),2);assert.equal(h.products[0].pantryLocation,'Baño');assert.equal(h.history[0].pantryReceived,true);assert.equal(valid(h),true);});
+test('quick add reuses names, keeps fractional quantities and validates amounts',()=>{const h=sample();quickAdd(h,' soap ',0.5,100,'new');quickAdd(h,'SOAP',2,null,'unused');assert.equal(h.products.length,2);assert.equal(h.cart[0].quantity,2.5);assert.equal(h.cart[0].price,100);assert.throws(()=>quickAdd(h,'',1,100,'x'));assert.throws(()=>quickAdd(h,'milk',1,-10,'x'));assert.equal(valid(h),true);});
+test('package comparison normalizes grams and millilitres and rejects zero contents',()=>{assert.deepEqual(unitPrice(1000,500,'g'),{value:2000,dimension:'kg'});assert.deepEqual(unitPrice(2000,1,'kg'),{value:2000,dimension:'kg'});assert.deepEqual(unitPrice(500,250,'ml'),{value:2000,dimension:'l'});assert.equal(unitPrice(50,0,'g'),null);});
+test('validation rejects malformed pantry quantities and expiry dates',()=>{const h=sample();h.products[0].pantryLots=[{id:'x',quantity:-1,expiry:''}];assert.equal(valid(h),false);h.products[0].pantryLots=[{id:'x',quantity:1,expiry:'2027-02-30'}];assert.equal(valid(h),false);});

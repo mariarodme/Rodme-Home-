@@ -1,3 +1,4 @@
+import {locations} from '../lib/pantry';
 import {calculate} from '../lib/calculator';
 import {Home, cartTotal, lineTotal, total, quickSteps, operationLabel} from '../lib/model';
 function validImage(src:string){return /^\/images\/[\w.-]+$/.test(src)||/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(src);}
@@ -15,6 +16,13 @@ export function valid(h: any): h is Home {
   if (h.cover && !validImage(h.cover)) return false;
   if(h.storeRoutes!==undefined&&(typeof h.storeRoutes!=='object'||h.storeRoutes===null||Array.isArray(h.storeRoutes)||Object.values(h.storeRoutes).some((route:any)=>!Array.isArray(route)||route.some((id:any)=>typeof id!=='string')||new Set(route).size!==route.length)))return false;
   if(h.products.some((p:any)=>p.runningLow!==undefined&&typeof p.runningLow!=='boolean'))return false;
+  for(const p of h.products){
+    if(p.pantryLocation!==undefined&&!locations.includes(p.pantryLocation))return false;
+    if(p.pantryUnit!==undefined&&!['unidad','kg','l'].includes(p.pantryUnit))return false;
+    if(p.minimumStock!==undefined&&(!Number.isFinite(p.minimumStock)||p.minimumStock<0||p.minimumStock>100000))return false;
+    if(p.autoRestock!==undefined&&typeof p.autoRestock!=='boolean')return false;
+    if(p.pantryLots!==undefined){if(!Array.isArray(p.pantryLots)||p.pantryLots.length>10000)return false;const ids=new Set();for(const l of p.pantryLots){if(!l||typeof l.id!=='string'||ids.has(l.id)||!Number.isFinite(l.quantity)||l.quantity<=0||l.quantity>100000||typeof l.expiry!=='string'||l.expiry!==''&&(!/^\d{4}-\d{2}-\d{2}$/.test(l.expiry)||!Number.isFinite(Date.parse(l.expiry))||new Date(l.expiry).toISOString().slice(0,10)!==l.expiry))return false;ids.add(l.id);}}
+  }
   if (h.budget !== null && (!Number.isFinite(h.budget) || h.budget < 0)) return false;
   if (h.calculatorExpression !== undefined && (typeof h.calculatorExpression !== 'string' || h.calculatorExpression.length > 2000 || calculate(h.calculatorExpression).value === null)) return false;
   if (h.quickCart !== undefined) {

@@ -32,3 +32,19 @@ test('shopping controls create pending products, compare prices, repeat receipt,
 test('IndexedDB retains queued household data and isolates account/household keys',async()=>{
  const home=sample();home.products[0].notes='Sin conexión';const value={home,serverHome:sample(),serverRevision:7,viewRevision:8,pending:true};await writeCache('ana:home',value);assert.equal((await readCache('ana:home'))?.home.products[0].notes,'Sin conexión');assert.equal((await readCache('ana:home'))?.pending,true);assert.equal(await readCache('sister:home'),undefined);assert.equal(await readCache('ana:other'),undefined);
 });
+
+test('pantry quantity buttons and checkout intake work through saved household state',async()=>{
+ let home=sample(),revision=1;
+ const request=(async(_url:any,init:any={})=>{if(init.method==='POST'){home=JSON.parse(init.body).home;revision++;}return Response.json({home,revision});}) as typeof fetch;
+ render(<HomeApp request={request}/>);await screen.findByRole('heading',{name:'Rodme Home 🏠'});
+ fireEvent.click(screen.getByRole('button',{name:'🏠 Mi casa',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Añadir existencia Jabón Dove Rosado'}));await waitFor(()=>assert.equal(home.products[0].pantryLots[0].quantity,1));
+ fireEvent.click(screen.getByRole('button',{name:'Consumir Jabón Dove Rosado'}));await waitFor(()=>assert.equal(home.products[0].pantryLots.length,0));
+ await menu('🛍️ Guardar compras en casa');fireEvent.click(screen.getByRole('button',{name:'Confirmar y guardar en casa'}));await waitFor(()=>assert.equal(home.history[0].pantryReceived,true));assert.equal(home.products[0].pantryLots[0].quantity,2);
+});
+
+test('supermarket picked toggle is reversible and quick product form adds a named item',async()=>{
+ let home=sample(),revision=1;const request=(async(_url:any,init:any={})=>{if(init.method==='POST'){home=JSON.parse(init.body).home;revision++;}return Response.json({home,revision});}) as typeof fetch;
+ render(<HomeApp request={request}/>);await screen.findByRole('heading',{name:'Rodme Home 🏠'});fireEvent.click(screen.getByRole('button',{name:'🛒 Supermercado',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Mis productos',exact:true}));
+ fireEvent.click(screen.getByRole('button',{name:'Ya lo eché al carrito: Jabón Dove Rosado'}));await waitFor(()=>assert.equal(home.cart.length,1));fireEvent.click(screen.getByRole('button',{name:'Ya lo eché al carrito: Jabón Dove Rosado'}));await waitFor(()=>assert.equal(home.cart.length,0));
+ fireEvent.click(screen.getByText('＋ Agregar un producto rápidamente'));fireEvent.change(screen.getByLabelText('Nombre'),{target:{value:'Leche nueva'}});fireEvent.change(screen.getByLabelText('Precio por unidad (opcional)'),{target:{value:'1500'}});fireEvent.click(screen.getByRole('button',{name:'Agregar al carrito',exact:true}));await waitFor(()=>assert.equal(home.cart.length,1));assert.equal(home.products.at(-1)?.name,'Leche nueva');assert.equal(home.cart[0].price,1500);
+});

@@ -24,3 +24,11 @@ Las imágenes cargadas se reducen a WebP y se guardan junto con el hogar; no req
 Desde la raíz: `npm ci --prefix pages`, crear enlace `node_modules` a `pages/node_modules`, `npm run dev --prefix pages`. La compilación se guarda en `dist-pages`. Usar `npm run check --prefix pages` y `npm run build --prefix pages` para validar. La versión original del servidor se conserva en el repositorio.
 
 El código Firebase de configuración web identifica el proyecto; las reglas de Firestore controlan el acceso. No se incluyen credenciales de administrador.
+
+### Alacena y compra rápida
+
+Mi casa organiza existencias por Alacena, Refrigeradora, Congelador, Limpieza y Baño. Las existencias son opcionales: los productos antiguos permanecen sin registrar hasta que se introduzca una cantidad. Los botones +/− ajustan una unidad (kg/l cuando esa es la unidad elegida); Editar permite cantidades fraccionarias, ubicación, mínimo y vencimientos por lote. El consumo descuenta primero el lote que vence antes. La reposición automática marca el mismo producto pendiente cuando llega al mínimo, sin crear duplicados.
+
+Después de guardar una compra con productos, se abre la confirmación para guardarla en casa. Cantidades, ubicación y vencimiento son editables; cero omite un producto. Cada compra se registra en la alacena una sola vez. Las compras guardadas únicamente con la calculadora no crean existencias: se pueden registrar manualmente en Mi casa.
+
+El supermercado incluye Lo eché/Deshacer, ocultar productos ya recogidos, alta rápida con nombre/cantidad/precio y comparación de presentaciones por kg/l/unidad. Los precios faltantes deben completarse antes de finalizar. No se cambió el inicio visual, las fotos originales ni la calculadora. Las fotos se descargan y quedan disponibles sin conexión después de visualizarlas; no se descargan todas al iniciar.
