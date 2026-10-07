@@ -35,3 +35,24 @@ body{color:var(--ink);background:#fff;font-family:-apple-system,BlinkMacSystemFo
 @media(prefers-reduced-motion:reduce){.loading-line:after{animation:none;width:100%}.visual-card:hover{transform:none}*{transition:none!important}}
 
 .cart-context{display:block;margin-top:12px;padding-top:10px}.cart-context summary{cursor:pointer;font-size:.8125rem;color:var(--olive-dark);min-height:34px;padding:6px 0}.cart-context-fields{display:flex;gap:16px;padding-top:10px}.cart-context-fields label{min-width:0}.shopping-toolbox>section>button,.shopping-toolbox>details>summary{min-height:44px}.product-row .check-button{min-width:44px;min-height:44px}.row-actions .small-button{min-height:44px}.row-actions{gap:6px}@media(max-width:740px){.cart-context-fields{flex-direction:column;gap:10px}.cart-context[open]{max-height:40dvh;overflow:auto}.cart-context[open] summary{position:sticky;top:0;background:#fff}.cart-summary .cart-context{margin-top:8px;padding-top:6px}.home-tools{flex-wrap:wrap}.home-navigation[aria-label="Accesos principales"] button{white-space:normal}.shopping-actions{flex-wrap:wrap}.cart-summary-top button{min-height:44px}}
+
+/* Local typefaces: an editorial title and a legible everyday interface. */
+@font-face{font-family:'Rodme Text';src:url('/fonts/source-sans-3-latin-400-normal.woff2') format('woff2');font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:'Rodme Text';src:url('/fonts/source-sans-3-latin-600-normal.woff2') format('woff2');font-style:normal;font-weight:500 900;font-display:swap}
+@font-face{font-family:'Rodme Title';src:url('/fonts/lora-latin-500-normal.woff2') format('woff2');font-style:normal;font-weight:400 900;font-display:swap}
+:root{--font-text:'Rodme Text','Segoe UI',Arial,sans-serif;--font-title:'Rodme Title',Georgia,serif}
+body{font-family:var(--font-text);font-size:17px;line-height:1.55}
+button,input,select,textarea{font-family:var(--font-text);letter-spacing:normal}
+h1,h2{font-family:var(--font-title);font-weight:500;letter-spacing:-.015em;line-height:1.3}
+.home-intro h1{font-size:clamp(2.1rem,4.2vw,3rem);font-weight:500;margin-bottom:14px}
+.home-intro p{font-size:1rem;color:var(--muted);max-width:none;margin-top:0}
+.home-intro{margin-top:24px}.brand span{font-family:var(--font-title);font-size:1.125rem;font-weight:500;letter-spacing:-.015em}
+.content-page h1{font-weight:500;font-size:2.2rem}.section-title h2{font-weight:500;font-size:1.2rem}.modal-inner h2{font-weight:500}
+.loading h1{font-family:var(--font-title);font-size:2.5rem;font-weight:500}.loading p{font-size:1rem}
+.product-name,.shopping-description strong,.card-details strong{font-weight:600;letter-spacing:normal;line-height:1.45}
+.product-name,.shopping-description strong{font-size:1rem}.card-details strong{font-size:1rem}
+small,.secondary{line-height:1.5}.table-heading{font-size:.875rem}.section-title{background:#f5f4ef;border-radius:4px;border-bottom:1px solid #e5e3da}
+.visual-card{border-radius:8px;box-shadow:none}.visual-card:hover{transform:none;box-shadow:0 3px 12px #30382f0a}
+.cart-amount,.calculator-screen output,.calculator-screen input,.checkout-bar strong{font-family:var(--font-text);font-variant-numeric:tabular-nums;letter-spacing:-.025em}
+.cart-summary-top h1{font-size:1.5rem}.normal-keypad button{font-family:var(--font-text);font-weight:400}.location-card strong{font-weight:600}
+@media(max-width:740px){body{font-size:16px}.home-intro h1{font-size:2.15rem}.home-intro p{font-size:.9375rem;max-width:280px}.content-page h1{font-size:1.9rem}.section-title h2{font-size:1.1rem}.brand span{font-size:1.05rem}.cart-summary-top h1{font-size:1.3rem}.card-details strong{font-size:.9375rem}.home-navigation[aria-label="Accesos principales"] button{font-size:.8125rem;line-height:1.25}.loading h1{font-size:2.2rem}}
