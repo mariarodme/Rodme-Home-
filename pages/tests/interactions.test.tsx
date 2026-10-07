@@ -67,3 +67,17 @@ test('photo price is read but only added after confirmation and can be corrected
  const originalCreate=URL.createObjectURL,originalRevoke=URL.revokeObjectURL;URL.createObjectURL=()=> 'blob:test';URL.revokeObjectURL=()=>{};let amount=0;
  try{render(<PhotoShopping busy={false} upload={async()=>''} readPhoto={async()=> 'PRECIO ₡2.500'} onPrice={async value=>{amount=value;return true}} onProduct={async()=>true}/>);fireEvent.click(screen.getByRole('button',{name:'📷 Foto rápida'}));fireEvent.change(screen.getByLabelText('Foto rápida'),{target:{files:[new File(['photo'],'label.jpg',{type:'image/jpeg'})]}});await waitFor(()=>assert.equal((screen.getByLabelText('Monto de la foto') as HTMLInputElement).value,'2500'));assert.equal(amount,0);fireEvent.change(screen.getByLabelText('Monto de la foto'),{target:{value:'2600'}});fireEvent.click(screen.getByRole('button',{name:'Sumar ₡2 600'}));await waitFor(()=>assert.equal(amount,2600));}finally{URL.createObjectURL=originalCreate;URL.revokeObjectURL=originalRevoke;}
 });
+
+
+test('location cards filter original photos and empty reset, while compact shopping keeps store selection and live total',async()=>{
+ let home=sample(),revision=1;home.products[0].pantryLocation='Baño';home.products[0].image='/images/soap.png';home.products[1].pantryLocation='Alacena';
+ const request=(async(_url:any,init:any={})=>{if(init.method==='POST'){home=JSON.parse(init.body).home;revision++;}return Response.json({home,revision});}) as typeof fetch;
+ render(<HomeApp request={request}/>);await screen.findByRole('heading',{name:'Rodme Home 🏠'});
+ fireEvent.click(screen.getByRole('button',{name:'Ver lo que tengo'}));fireEvent.click(screen.getByRole('button',{name:'Baño',exact:true}));
+ assert.equal(document.querySelectorAll('.pantry-product').length,1);assert.equal(document.querySelector('.location-card[aria-label="Baño"] img')?.getAttribute('src'),'/images/soap.png');
+ fireEvent.change(screen.getByLabelText('Buscar en casa'),{target:{value:'No existe'}});fireEvent.click(screen.getByRole('button',{name:'Ver todo mi hogar'}));assert.equal(document.querySelectorAll('.pantry-product').length,2);
+ fireEvent.click(screen.getByRole('button',{name:'🛒 Supermercado',exact:true}));fireEvent.change(screen.getByLabelText('Cuenta, por ejemplo 2500+3500*2'),{target:{value:'2500+3500*2+'}});
+ assert.equal(document.querySelector('.cart-amount')?.textContent?.replace(/\D/g,''),'9500');
+ fireEvent.click(screen.getByRole('button',{name:'Mis productos',exact:true}));fireEvent.click(screen.getByText('Tienda y lista de esta compra'));fireEvent.change(screen.getByLabelText('Tienda de esta compra'),{target:{value:'other'}});await waitFor(()=>assert.equal(home.cartStoreId,'other'));
+ assert.equal(screen.getByRole('button',{name:'🛒 Supermercado',exact:true}).getAttribute('aria-current'),'page');
+});

@@ -1,1 +1,23 @@
-{"name": "Rodme Home 🏠", "short_name": "Rodme Home", "start_url": "./", "display": "standalone", "background_color": "#ffffff", "theme_color": "#ffffff", "lang": "es", "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"}, {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"}], "scope": "./"}
+{
+  "name": "Rodme Home 🏠",
+  "short_name": "Rodme Home",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f5ef",
+  "theme_color": "#f7f5ef",
+  "lang": "es",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "scope": "./"
+}
