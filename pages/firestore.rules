@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signedIn() { return request.auth != null && request.auth.token.firebase.sign_in_provider == 'google.com'; }
+  function member(homeId) { return signedIn() && exists(/databases/$(database)/documents/homes/$(homeId)/members/$(request.auth.uid)); }
+  function memberAfter(homeId) { return signedIn() && existsAfter(/databases/$(database)/documents/homes/$(homeId)/members/$(request.auth.uid)); }
+  function ownerAfter(homeId) { return signedIn() && getAfter(/databases/$(database)/documents/homes/$(homeId)).data.owner == request.auth.uid; }
+  match /users/{userId} {
+   allow get: if signedIn() && request.auth.uid == userId;
+   allow create, update: if signedIn() && request.auth.uid == userId && request.resource.data.keys().hasOnly(['homeId']) && request.resource.data.homeId is string && memberAfter(request.resource.data.homeId);
+  }
+  match /invites/{code} {
+   allow get: if signedIn();
+   allow create: if signedIn() && code.size() == 64 && request.resource.data.keys().hasOnly(['homeId','owner']) && request.resource.data.owner == request.auth.uid && member(request.resource.data.homeId);
+   allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+  }
+  match /homes/{homeId} {
+   allow get: if member(homeId);
+   allow create: if signedIn() && request.resource.data.keys().hasOnly(['owner']) && request.resource.data.owner == request.auth.uid;
+   match /members/{userId} {
+    allow get: if signedIn() && (request.auth.uid == userId || member(homeId));
+    allow create: if signedIn() && request.auth.uid == userId && (
+     (request.resource.data.keys().hasOnly(['owner']) && request.resource.data.owner == true && ownerAfter(homeId)) ||
+     (request.resource.data.keys().hasOnly(['invite']) && request.resource.data.invite is string && get(/databases/$(database)/documents/invites/$(request.resource.data.invite)).data.homeId == homeId)
+    );
+   }
+   match /state/current {
+    allow get: if member(homeId);
+    allow create: if ownerAfter(homeId) && memberAfter(homeId) && request.resource.data.keys().hasOnly(['revision','chunkCount']) && request.resource.data.revision == 0 && request.resource.data.chunkCount is int && request.resource.data.chunkCount > 0 && request.resource.data.chunkCount <= 20;
+    allow update: if member(homeId) && request.resource.data.keys().hasOnly(['revision','chunkCount']) && request.resource.data.revision == resource.data.revision + 1 && request.resource.data.chunkCount is int && request.resource.data.chunkCount > 0 && request.resource.data.chunkCount <= 20;
+   }
+   match /chunks/{chunkId} {
+    allow get: if member(homeId);
+    allow create, update: if memberAfter(homeId) && request.resource.data.keys().hasOnly(['data']) && request.resource.data.data is string && request.resource.data.data.size() <= 900000;
+    allow delete: if member(homeId);
+   }
+  }
+ }
+}
