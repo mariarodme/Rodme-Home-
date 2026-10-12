@@ -78,3 +78,40 @@ body{font-size:15px;color:var(--ink)}h1,h2{font-weight:700;letter-spacing:-.035e
 .calendar-layout{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:32px;align-items:start}.calendar-month{border:1px solid var(--border,#e4e0d8);border-radius:12px;padding:18px;background:#fff;position:sticky;top:110px}.calendar-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px}.calendar-toolbar h2{font-size:1.15rem;text-transform:capitalize}.calendar-toolbar button{min-width:44px;min-height:44px}.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:16px 0;text-align:center}.calendar-grid>span{padding:8px 0;color:#777}.calendar-grid button{min-height:62px;padding:6px 2px;display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid #eee;background:#fff;border-radius:8px}.calendar-grid button.selected{background:#e91414;color:white;border-color:#e91414}.calendar-grid small{font-size:10px}.calendar-count-label{display:none}.calendar-today{font-size:9px}.calendar-plan h2{font-size:1.3rem}.calendar-add{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;background:#fff1d3;padding:18px;border-radius:12px;margin-bottom:18px}.calendar-add label:first-child{grid-column:1/-1}.calendar-add button{grid-column:1/-1}.calendar-add input,.calendar-add select{width:100%;min-width:0}.calendar-section{margin:24px 0}.calendar-product{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid #eee}.calendar-product>.product-image{max-width:70px;max-height:85px;object-fit:contain}.calendar-product>div{flex:1;min-width:0}.calendar-product small{display:block;margin:5px 0}.calendar-product label{font-size:12px}.calendar-product input{max-width:110px;display:block}.stock-ready{color:#397246}.stock-missing{color:#9c401d}.calendar-plan>button{margin:5px 8px 8px 0}.calendar-month input{max-width:100%}@media(max-width:740px){.calendar-layout{grid-template-columns:1fr;gap:24px}.calendar-month{position:static;padding:12px}.calendar-add{grid-template-columns:1fr}.calendar-product{gap:8px}.calendar-product>.product-image{max-width:48px}.calendar-product>button{padding:8px;font-size:12px}.calendar-grid button{min-height:56px}}
 
 .calendar-add .calendar-create{grid-column:1/-1;background:white;color:#9c1010;border:1px solid #e4d6b8}.calendar-form-note{grid-column:1/-1;margin:0;font-size:13px}
+
+/* Mobile navigation: always-visible destinations and comfortable touch controls. */
+.home-navigation[aria-label="Accesos principales"] .mobile-nav-item,.mobile-nav-label{display:none}
+.home-navigation[aria-label="Accesos principales"]>button>svg{display:none}
+@media(max-width:740px){
+ html{scroll-padding-top:112px}
+ body{padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+ button,.small-button,.text-button,.icon-button{min-height:44px}
+ input:not([type=checkbox]),select,textarea{font-size:16px;min-height:44px}
+ .shop-utility{display:none}
+ .topbar{height:108px;min-height:108px;padding:8px 14px;gap:4px 10px}
+ .brand span{font-size:1.2rem}
+ .topbar .icon-button{min-width:44px}
+ .header-search{height:44px}
+ .header-search input{font-size:16px}
+ .home-navigation[aria-label="Accesos principales"]{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));inset:auto 0 0;gap:2px;padding:6px 4px calc(6px + env(safe-area-inset-bottom));min-height:78px;z-index:30}
+ .home-navigation[aria-label="Accesos principales"]>button,.home-navigation[aria-label="Accesos principales"] .mobile-nav-item{display:flex;flex-direction:column;gap:4px;padding:6px 2px;min-height:62px;min-width:0;font-size:11px;font-weight:600;line-height:1.2;border-radius:10px}
+ .home-navigation[aria-label="Accesos principales"]>button>svg{display:block;flex-shrink:0}
+ .desktop-nav-label{display:none}.mobile-nav-label{display:inline}
+ .home-navigation[aria-label="Accesos principales"] button.active{background:#fff0ec;color:#b50d0d;border:0}
+ .menu-panel{position:fixed;top:58px;right:12px;left:12px;min-width:0;max-height:calc(100dvh - 150px - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;z-index:40;padding:8px;box-shadow:0 10px 45px #0003}
+ .menu-panel button{min-height:48px;font-size:14px;padding:10px 14px}
+ .cart-summary{top:108px}
+ .checkout-bar{bottom:calc(90px + env(safe-area-inset-bottom));padding:12px;gap:10px}
+ .toast{bottom:calc(94px + env(safe-area-inset-bottom));white-space:normal;width:max-content;max-width:calc(100vw - 24px)}
+ .saving-indicator{bottom:calc(90px + env(safe-area-inset-bottom))}
+ .mode-tabs{gap:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+ .mode-tabs button{min-width:0;min-height:48px;padding:8px 4px;font-size:12px}
+ .filters .search{flex-basis:100%;min-width:0}
+ .filters>select{min-width:0;max-width:none;flex-basis:calc(50% - 10px)}
+ .card-edit{opacity:1;min-width:44px;min-height:44px}
+ .home-tools button{min-height:44px!important;font-size:12px!important}
+ .shop-category-nav button{font-size:12px;min-height:44px}
+ .shop-benefits small{font-size:11px}
+ .shop-footer button{font-size:12px}
+ .page-heading{flex-wrap:wrap}
+}
