@@ -9,7 +9,7 @@ export default function HomeShowcase({home,imageUrl,productImage,go,category,edi
  return <>
   <div className="shop-category-nav" aria-label="Secciones de tus productos">{sections.map(s=><button key={s.id} aria-label={s.name} onClick={()=>category(s.id)}>{s.name}</button>)}</div>
   <section className="shop-hero">
-   <div className="shop-hero-copy"><span>Todo listo para tu próxima compra</span><h1>Rodme Home 🏠</h1><p>Lo que necesitas,<br/>cuando lo necesitas.</p><button className="primary" onClick={()=>go('supermarket')}><ShoppingCart size={18}/> Empezar mi compra</button></div>
+   <div className="shop-hero-copy"><span>Todo listo para tu próxima compra</span><h1>Rodme Home</h1><p>Lo que necesitas,<br/>cuando lo necesitas.</p><button className="primary" onClick={()=>go('supermarket')}><ShoppingCart size={18}/> Empezar mi compra</button></div>
    <div className="shop-hero-photo">{home.cover?<img src={imageUrl(home.cover)} alt="Portada de Rodme Home"/>:<div className="shop-hero-products">{home.products.filter(p=>p.image).slice(0,3).map(p=><span key={p.id}>{productImage(p)}</span>)}</div>}<button className="cover-edit" onClick={editCover}><ImagePlus size={15}/> Cambiar portada</button></div>
   </section>
   <div className="shop-benefits">
