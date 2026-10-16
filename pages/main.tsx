@@ -30,10 +30,16 @@ function App(){
  useEffect(()=>{const params=new URLSearchParams(location.hash.slice(1));const value=params.get('invite');if(value){setInvite(value);setJoinOpen(true);}},[]);
  async function work(fn:()=>Promise<void>){setBusy(true);setError('');try{await fn();}catch(e){setError(friendlyError(e));}finally{setBusy(false);}}
  async function join(){await work(async()=>{setHomeId(await joinHome(invite));setJoinOpen(false);setSharing('');history.replaceState(null,'',base);});}
- const enter=()=>work(async()=>{await login();});
+ const enter=()=>work(async()=>{
+  // Keep the sign-in screen usable if an iOS popup or redirect silently stalls.
+  await Promise.race([
+   login(),
+   new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error('Google no respondió. Si estás usando la app instalada en iPhone, abre Rodme Home desde Safari para completar el acceso e inténtalo nuevamente.')),20000))
+  ]);
+ });
  const exit=()=>work(async()=>{if(sync.pending)throw new Error('Sincroniza tus cambios pendientes antes de cerrar sesión.');await signOut(auth);setHomeId(null);setSharing('');});
  if(loading)return <main className="loading" aria-busy="true"><BrandMark/><h1>Rodme Home</h1><p>Preparando tu espacio…</p><div className="loading-line"/></main>;
- if(!user)return <main className="loading welcome"><BrandMark/><h1>Rodme Home</h1><p>Tus compras y tu alacena, en un solo lugar.</p><div className="welcome-details"><span>🥫 Tu alacena</span><span>✍️ Tus listas</span><span>🛒 Tus compras</span></div><p className="secondary">Entra con Google para abrir tu hogar y guardar tus cambios.</p><button className="primary" disabled={busy} onClick={enter}>{busy?'Abriendo Google…':'Entrar con Google'}</button>{error&&<p role="alert">{error}</p>}</main>;
+ if(!user)return <main className="loading welcome"><BrandMark/><h1>Rodme Home</h1><p>Tus compras y tu alacena, en un solo lugar.</p><div className="welcome-details"><span>🥫 Tu alacena</span><span>✍️ Tus listas</span><span>🛒 Tus compras</span></div><p className="secondary">Entra con Google para abrir tu hogar y guardar tus cambios.</p><button className="primary" disabled={busy} onClick={enter}>{busy?'Abriendo Google…':'Entrar con Google'}</button>{error&&<p role="alert">{error}</p>}{busy&&<p className="secondary">Si no se abre Google, espera unos segundos para volver a intentarlo.</p>}</main>;
  const joinForm=<form onSubmit={e=>{e.preventDefault();join();}}><label>Enlace de invitación<input value={invite} onChange={e=>setInvite(e.target.value)} placeholder="Pega el enlace del hogar" required/></label><button className="primary" disabled={busy}>Unirme a este hogar</button>{homeId&&<button type="button" disabled={busy} onClick={()=>setJoinOpen(false)}>Cancelar</button>}</form>;
  if(!homeId||joinOpen)return <main className="loading household"><h1>Rodme Home</h1><p>{homeId?'Al unirte verás las listas y compras de ese hogar.':'Crea tu hogar o únete al que te compartieron.'}</p>{!homeId&&<button disabled={busy} className="primary" onClick={()=>work(async()=>{setHomeId(await createHome());})}>Crear mi hogar</button>}{joinForm}{error&&<p role="alert">{error}</p>}<button disabled={busy} onClick={exit}>Cerrar sesión</button></main>;
  const syncControls=<aside className="sync-bar" aria-live="polite">
