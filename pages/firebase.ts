@@ -1,5 +1,5 @@
 import {initializeApp} from 'firebase/app';
-import {getAuth, GoogleAuthProvider, signInWithPopup, browserLocalPersistence, setPersistence} from 'firebase/auth';
+import {getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, browserLocalPersistence, setPersistence} from 'firebase/auth';
 import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager} from 'firebase/firestore';
 const app=initializeApp({apiKey:'AIzaSyA-tKXyjqwD45RA6Zel-dbk77TH757LOBk',authDomain:'rodme-home.firebaseapp.com',projectId:'rodme-home',storageBucket:'rodme-home.firebasestorage.app',messagingSenderId:'340185409440',appId:'1:340185409440:web:b4f2dbbe224d114542a6c5'});
 export const auth=getAuth(app);
@@ -7,7 +7,11 @@ export const db=initializeFirestore(app,{localCache:persistentLocalCache({tabMan
 export async function login(){
  await setPersistence(auth,browserLocalPersistence);
  const provider=new GoogleAuthProvider();// Reuse the browser's existing Google session without forcing account selection.
- // Popup stays on the GitHub Pages origin, avoiding third-party redirect storage.
+ // Installed iOS apps may not support Firebase popup windows reliably.
+ if(window.matchMedia('(display-mode: standalone)').matches && /iPad|iPhone|iPod/.test(navigator.userAgent)){
+  await signInWithRedirect(auth,provider);
+  return;
+ }
  return signInWithPopup(auth,provider);
 }
 export function friendlyError(error:unknown){
