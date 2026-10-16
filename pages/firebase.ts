@@ -6,7 +6,7 @@ export const auth=getAuth(app);
 export const db=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});
 export async function login(){
  await setPersistence(auth,browserLocalPersistence);
- const provider=new GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});
+ const provider=new GoogleAuthProvider();// Reuse the browser's existing Google session without forcing account selection.
  // Popup stays on the GitHub Pages origin, avoiding third-party redirect storage.
  return signInWithPopup(auth,provider);
 }
