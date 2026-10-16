@@ -7,11 +7,18 @@ self.addEventListener('fetch',event=>{
  const url=new URL(event.request.url);
  if(event.request.method!=='GET'||url.origin!==self.location.origin||!url.href.startsWith(scope)||url.pathname.includes('/api/'))return;
  if(event.request.mode==='navigate'){
-  const network=fetch(event.request);
+  // Always prefer fresh HTML while online. An old offline shell can keep showing
+  // a broken sign-in page after a deployment on slower mobile connections.
   event.respondWith((async()=>{
-   const cached=await caches.match(new URL('index.html',scope).href);
-   if(!cached)return network;
-   return Promise.race([network.catch(()=>cached),new Promise(resolve=>setTimeout(()=>resolve(cached),1500))]);
+   try{
+    const response=await fetch(event.request,{cache:'no-store'});
+    if(response.ok)return response;
+    throw new Error('Network response unavailable');
+   }catch{
+    const cached=await caches.match(new URL('index.html',scope).href);
+    if(cached)return cached;
+    return Response.error();
+   }
   })());return;
  }
  event.respondWith((async()=>{const cached=await caches.match(event.request);if(cached)return cached;const response=await fetch(event.request);if(response.ok&&(url.pathname.includes('/images/')||url.pathname.includes('/ocr/'))){const cache=await caches.open(CACHE);try{await cache.put(event.request,response.clone());}catch{}}return response;})());
